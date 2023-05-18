@@ -1,4 +1,4 @@
-#include <algorithm>
+п»ї#include <algorithm>
 #include <numeric>
 
 #include "input_reader.h"
@@ -48,7 +48,7 @@ void FileLoader::ParseQuery(std::string_view line)
 		auto [name, route] = ParseBus(line);
 		name_ini.emplace_back(std::string(name));
 
-		std::vector<std::string> buffer;//служит для инициализации bus_ini из route
+		std::vector<std::string> buffer;//СЃР»СѓР¶РёС‚ РґР»СЏ РёРЅРёС†РёР°Р»РёР·Р°С†РёРё bus_ini РёР· route
 		buffer.reserve(route.size());
 		std::for_each(route.begin(), route.end(),
 			[&](auto stop) {
@@ -66,17 +66,17 @@ std::pair<std::string_view, std::tuple<double, double, std::vector<std::pair<std
 	auto centr_pos = line.find(':');
 	auto stop_pos = line.find_first_of('p');
 	std::string_view name = line.substr(line.find_first_not_of(' ', stop_pos + 1)
-		, centr_pos - line.find_first_not_of('p', stop_pos) - 1);// название остановки 
+		, centr_pos - line.find_first_not_of('p', stop_pos) - 1);// РЅР°Р·РІР°РЅРёРµ РѕСЃС‚Р°РЅРѕРІРєРё 
 
 	auto new_centr = line.find(',');
 	std::string_view  latitude = line.substr(line.find_first_not_of(' ', centr_pos + 1)
-		, new_centr - line.find_first_not_of(' ', centr_pos + 1));//широта;
+		, new_centr - line.find_first_not_of(' ', centr_pos + 1));//С€РёСЂРѕС‚Р°;
 
 	std::string_view longitude;
-	std::vector<std::pair<std::string_view, double>> distance_from_current_stop_to_stops;// расстояние от текущей остановки до слудующий остановки 
+	std::vector<std::pair<std::string_view, double>> distance_from_current_stop_to_stops;// СЂР°СЃСЃС‚РѕСЏРЅРёРµ РѕС‚ С‚РµРєСѓС‰РµР№ РѕСЃС‚Р°РЅРѕРІРєРё РґРѕ СЃР»СѓРґСѓСЋС‰РёР№ РѕСЃС‚Р°РЅРѕРІРєРё 
 	if (line.find(',', new_centr + 1) < line.size()) {
 		longitude = line.substr(line.find_first_not_of(' ', new_centr + 1)
-			, (line.find(',', new_centr + 1) - line.find_first_not_of(' ', new_centr + 1)));//долгота;
+			, (line.find(',', new_centr + 1) - line.find_first_not_of(' ', new_centr + 1)));//РґРѕР»РіРѕС‚Р°;
 
 		new_centr = line.find(',', new_centr + 1);
 
@@ -95,7 +95,7 @@ std::pair<std::string_view, std::tuple<double, double, std::vector<std::pair<std
 	}
 	else {
 		longitude = line.substr(line.find_first_not_of(' ', new_centr + 1)
-			, (line.find_first_of(' ', line.find_first_not_of(' ', new_centr + 1)) - line.find_first_not_of(' ', new_centr + 1)));//долгота;
+			, (line.find_first_of(' ', line.find_first_not_of(' ', new_centr + 1)) - line.find_first_not_of(' ', new_centr + 1)));//РґРѕР»РіРѕС‚Р°;
 	}
 
 	return std::make_pair(name, std::make_tuple(std::stod(std::string(latitude)), stod(std::string(longitude)), distance_from_current_stop_to_stops));
@@ -105,9 +105,9 @@ std::pair<std::string_view, std::vector<std::string_view>> ParseBus(std::string_
 {
 	auto stop_pos = line.find_first_of('s');
 	std::string_view name = line.substr(line.find_first_not_of(' ', stop_pos + 1)
-		, line.find(':') - line.find_first_not_of('s', stop_pos) - 1);// название маршрута
+		, line.find(':') - line.find_first_not_of('s', stop_pos) - 1);// РЅР°Р·РІР°РЅРёРµ РјР°СЂС€СЂСѓС‚Р°
 
-	//определение какого типа добавляем маршрут(кольцевой/обычный)
+	//РѕРїСЂРµРґРµР»РµРЅРёРµ РєР°РєРѕРіРѕ С‚РёРїР° РґРѕР±Р°РІР»СЏРµРј РјР°СЂС€СЂСѓС‚(РєРѕР»СЊС†РµРІРѕР№/РѕР±С‹С‡РЅС‹Р№)
 	char search_car;
 	bool is_circle_route = true;
 	if (line.find('>') <= line.size()) {
@@ -118,7 +118,7 @@ std::pair<std::string_view, std::vector<std::string_view>> ParseBus(std::string_
 		is_circle_route = false;
 	}
 
-	//парсинг остановок на маршруте
+	//РїР°СЂСЃРёРЅРі РѕСЃС‚Р°РЅРѕРІРѕРє РЅР° РјР°СЂС€СЂСѓС‚Рµ
 	std::vector<std::string_view> stop_on_rout;
 	auto centr_pos = line.find(':');
 	for (auto new_centr = line.find(search_car); centr_pos < line.size(); new_centr = line.find(search_car, new_centr + 1)) {
@@ -129,7 +129,7 @@ std::pair<std::string_view, std::vector<std::string_view>> ParseBus(std::string_
 		stop_on_rout.push_back(stop);
 	}
 
-	//дополнение обратного пути для не кольцевого маршрута
+	//РґРѕРїРѕР»РЅРµРЅРёРµ РѕР±СЂР°С‚РЅРѕРіРѕ РїСѓС‚Рё РґР»СЏ РЅРµ РєРѕР»СЊС†РµРІРѕРіРѕ РјР°СЂС€СЂСѓС‚Р°
 	if (!is_circle_route) {
 		std::vector<std::string_view> route_to_end(stop_on_rout.rbegin(), stop_on_rout.rend());
 		route_to_end.erase(route_to_end.begin());

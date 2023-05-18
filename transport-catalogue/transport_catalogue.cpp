@@ -1,4 +1,4 @@
-#include <algorithm>
+п»ї#include <algorithm>
 
 #include "transport_catalogue.h"
 #include "input_reader.h"
@@ -103,7 +103,7 @@ BusInfo TransportCatalogue::GetBusInfo(const std::string_view name)
 		unique_stops_tmp.push_back(bus.stop_on_route[i]->name);
 	}
 
-	//узкое место 
+	//СѓР·РєРѕРµ РјРµСЃС‚Рѕ 
 	std::sort(unique_stops_tmp.begin(), unique_stops_tmp.end());
 	unique_stops_tmp.erase(std::unique(unique_stops_tmp.begin(), unique_stops_tmp.end()), unique_stops_tmp.end());
 

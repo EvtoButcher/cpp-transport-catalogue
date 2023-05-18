@@ -1,4 +1,4 @@
-#pragma once
+п»ї#pragma once
 #include <unordered_map>
 #include <unordered_set>
 #include <deque>
@@ -98,15 +98,15 @@ public:
 
 private:
 
-	std::deque<detail::Stop> list_of_stops_{};//остановок
-	std::unordered_map<std::string_view, detail::Stop*> map_of_stops_{};//доступ к остановке по имени за О(1)
+	std::deque<detail::Stop> list_of_stops_{};//РѕСЃС‚Р°РЅРѕРІРѕРє
+	std::unordered_map<std::string_view, detail::Stop*> map_of_stops_{};//РґРѕСЃС‚СѓРї Рє РѕСЃС‚Р°РЅРѕРІРєРµ РїРѕ РёРјРµРЅРё Р·Р° Рћ(1)
 
-	std::deque<detail::Bus> list_of_bus_{};//маршруты
-	std::unordered_map<std::string_view, detail::Bus*> map_of_bus_{};//доступ к маршруту по имени за О(1)
+	std::deque<detail::Bus> list_of_bus_{};//РјР°СЂС€СЂСѓС‚С‹
+	std::unordered_map<std::string_view, detail::Bus*> map_of_bus_{};//РґРѕСЃС‚СѓРї Рє РјР°СЂС€СЂСѓС‚Сѓ РїРѕ РёРјРµРЅРё Р·Р° Рћ(1)
 
-	std::unordered_map <detail::Stop*, std::vector<detail::Bus*>> map_bus_on_stop_{};//автобусы на остановке
+	std::unordered_map <detail::Stop*, std::vector<detail::Bus*>> map_bus_on_stop_{};//Р°РІС‚РѕР±СѓСЃС‹ РЅР° РѕСЃС‚Р°РЅРѕРІРєРµ
 
-	std::unordered_map<std::pair<detail::Stop*, detail::Stop*>, unsigned int, detail::PairStopHasher> map_distance_between_stops{};//расстояния между остановками 
+	std::unordered_map<std::pair<detail::Stop*, detail::Stop*>, unsigned int, detail::PairStopHasher> map_distance_between_stops{};//СЂР°СЃСЃС‚РѕСЏРЅРёСЏ РјРµР¶РґСѓ РѕСЃС‚Р°РЅРѕРІРєР°РјРё 
 };
 
 void StartCatalogue(std::istream& input, std::ostream& output);

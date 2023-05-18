@@ -1,4 +1,4 @@
-#pragma once
+п»ї#pragma once
 #include <unordered_map>
 #include <sstream>
 #include <string_view>
@@ -22,8 +22,8 @@ public:
 
 private:
 
-	std::deque<std::string> name_ini;// инициализация имён для карты
-	std::deque<std::vector<std::string>> bus_ini;// инициализация маршрутов для карты
+	std::deque<std::string> name_ini;// РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РёРјС‘РЅ РґР»СЏ РєР°СЂС‚С‹
+	std::deque<std::vector<std::string>> bus_ini;// РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РјР°СЂС€СЂСѓС‚РѕРІ РґР»СЏ РєР°СЂС‚С‹
 
 	std::unordered_map<std::string_view, std::tuple<double, double>> bus_stop_;
 	std::unordered_map<std::string_view, std::vector<std::string_view>> route_;
