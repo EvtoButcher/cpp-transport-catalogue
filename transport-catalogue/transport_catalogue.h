@@ -7,13 +7,14 @@
 #include <string_view>
 #include <sstream>
 #include <utility>
+#include <optional>
+#include <set>
 
 #include "geo.h"
 #include "input_reader.h"
 
 namespace transport_catalogue {
 
-namespace detail{
 struct Stop
 {
 	Stop() = default;
@@ -44,6 +45,7 @@ struct Bus
 struct StopInfo
 {
 	StopInfo() = default;
+
 	StopInfo(std::string_view n, std::vector<Bus*> b)
 		:name(n),
 		bus_on_route(std::move(b))
@@ -56,6 +58,13 @@ struct StopInfo
 struct BusInfo
 {
 	BusInfo() = default;
+
+	BusInfo(size_t s, size_t u_s, double l, double c)
+		: stops(s)
+		, unique_stop(u_s)
+		, route_length(l)
+		, route_curvature(c)
+	{};
 
 	size_t stops;
 	size_t unique_stop;
@@ -71,44 +80,43 @@ struct PairStopHasher {
 	std::hash<const void*> stop_hasher;
 };
 
-}//namespase detail
+struct BusCmp {
+	bool operator()(Bus* bus_l, Bus* bus_r) const{
+		return bus_r->name > bus_l->name;
+	}
+};
 
 class TransportCatalogue
 {
 public:
 
 	TransportCatalogue() = default;
-	//TransportCatalogue(std::istream& input);
 
-	void AddStop(const std::string_view name, const double latitude, const double longitude);
-	void AddBus(const std::string_view name, const std::vector<detail::Stop*>& stop_on_route);
-	void AddBus(const std::string_view name, const std::vector<std::string_view>& stop_on_route);
-	void AddStopInfo();
-	void AddDistanceFromTo(const std::string_view stop_name, const std::vector<std::pair<std::string_view, unsigned int>>& distance_to_stops);
+	void AddStop(std::string_view name, Coordinates coordinates);
+	void AddBus(std::string_view name, const std::vector<std::string_view>& stop_on_route);
+	void AddDistanceFromTo(std::string_view current_stop_name, std::string_view other_stop_name, unsigned int distance_to_stops);
 
-	detail::Bus FindBus(const std::string_view name);
-	detail::Stop FindStop(const std::string_view name);
+	const Bus* FindBus(std::string_view name) const;
+	const Stop* FindStop(std::string_view name) const;
 
-	detail::BusInfo GetBusInfo(const std::string_view name);
-	detail::StopInfo GetStopInfo(const std::string_view name);
-	double GetRoadDistance( const std::string_view name);
+	std::optional<BusInfo> GetBusInfo(std::string_view name) const;
+	std::optional <StopInfo> GetStopInfo(std::string_view name) const;
+	std::optional<double> GetRoadDistance(std::string_view name) const;
 
 	bool BusExists(std::string_view name) const;
 	bool StopExists(std::string_view name) const;
 
 private:
 
-	std::deque<detail::Stop> list_of_stops_{};//остановок
-	std::unordered_map<std::string_view, detail::Stop*> map_of_stops_{};//доступ к остановке по имени за О(1)
+	std::deque<Stop> list_of_stops_{};//остановок
+	std::unordered_map<std::string_view, Stop*> map_of_stops_{};//доступ к остановке по имени за О(1)
 
-	std::deque<detail::Bus> list_of_bus_{};//маршруты
-	std::unordered_map<std::string_view, detail::Bus*> map_of_bus_{};//доступ к маршруту по имени за О(1)
+	std::deque<Bus> list_of_bus_{};//маршруты
+	std::unordered_map<std::string_view, Bus*> map_of_bus_{};//доступ к маршруту по имени за О(1)
 
-	std::unordered_map <detail::Stop*, std::vector<detail::Bus*>> map_bus_on_stop_{};//автобусы на остановке
+	std::unordered_map <Stop*, std::set<Bus*, BusCmp>> map_bus_on_stop_{};//автобусы на остановке
 
-	std::unordered_map<std::pair<detail::Stop*, detail::Stop*>, unsigned int, detail::PairStopHasher> map_distance_between_stops{};//расстояния между остановками 
+	std::unordered_map<std::pair<Stop*, Stop*>, unsigned int, PairStopHasher> map_distance_between_stops{};//расстояния между остановками 
 };
-
-void StartCatalogue(std::istream& input, std::ostream& output);
 
 }//namespace transport_catalogue

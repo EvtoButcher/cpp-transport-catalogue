@@ -30,18 +30,15 @@ void FileLoader::ParseQuery(std::string_view line)
 		bus_stop_[name] = std::make_tuple(std::get<0>(geo), std::get<1>(geo));
 
 		auto distance_from_current_stop_to_stops = std::move(std::get<2>(geo));
-		distance_to_stops_[bus_stop_.find(name)->first] = std::vector<std::pair<std::string_view, unsigned int>>(distance_from_current_stop_to_stops.size());
-		std::transform(distance_from_current_stop_to_stops.begin(), distance_from_current_stop_to_stops.end()
-			, distance_to_stops_[bus_stop_.find(name)->first].begin()
-			, [&](const auto& neme_distance) {
-				if (bus_stop_.find(neme_distance.first) == bus_stop_.end()) {
-					name_ini.emplace_back(std::string(neme_distance.first));
+		
+		std::for_each(distance_from_current_stop_to_stops.begin(), distance_from_current_stop_to_stops.end(),
+			[&](auto& other_stop) {
+				if (bus_stop_.find(other_stop.first) == bus_stop_.end()) {
+					name_ini.emplace_back(std::string(other_stop.first));
 					bus_stop_[name_ini.back()];
 				}
-				return std::make_pair(bus_stop_.find(neme_distance.first)->first, neme_distance.second);
+				distance_between_stops_[std::make_pair(bus_stop_.find(name)->first, bus_stop_.find(other_stop.first)->first)] = other_stop.second;
 			});
-
-		return;
 	}
 
 	if (key == std::string_view("Bus")) {
@@ -101,6 +98,7 @@ std::pair<std::string_view, std::tuple<double, double, std::vector<std::pair<std
 	return std::make_pair(name, std::make_tuple(std::stod(std::string(latitude)), stod(std::string(longitude)), distance_from_current_stop_to_stops));
 }
 
+
 std::pair<std::string_view, std::vector<std::string_view>> ParseBus(std::string_view& line)
 {
 	auto stop_pos = line.find_first_of('s');
@@ -151,9 +149,9 @@ std::unordered_map<std::string_view, std::vector<std::string_view>> FileLoader::
 	return route_;
 }
 
-std::unordered_map<std::string_view, std::vector<std::pair<std::string_view, unsigned int>>> FileLoader::GetDistances()
+std::unordered_map<std::pair<std::string_view, std::string_view>, unsigned int, PairStringViewHasher> FileLoader::GetDistances()
 {
-	return distance_to_stops_;
+	return distance_between_stops_;
 }
 
 }//namespace transport_catalogue::file_loader

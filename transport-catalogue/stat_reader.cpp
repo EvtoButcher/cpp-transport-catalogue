@@ -8,7 +8,7 @@
 
 namespace transport_catalogue::file_unloader{
 
-FileUnloader::FileUnloader(TransportCatalogue& catalogue, std::istream& input)
+FileUnloader::FileUnloader(const TransportCatalogue& catalogue, std::istream& input)
 {
 	std::string line;
 	std::getline(input, line);
@@ -20,26 +20,17 @@ FileUnloader::FileUnloader(TransportCatalogue& catalogue, std::istream& input)
 		std::getline(input, line);
 		Query query = ParseQuery(line);
 
-		if (query.key == 'B' && !catalogue.BusExists(query.name)) {
-			bus_queryies_.push_back(std::string(query.name));
-			fresh_queryies_.push_back(Query(query.key, bus_queryies_.back()));
-			continue;
-		}
-
-		if (query.key == 'S' && !catalogue.StopExists(query.name)) {
-			stop_queryies_.push_back(std::string(query.name));
-			fresh_queryies_.push_back(Query(query.key, stop_queryies_.back()));
-			continue;
-		}
-
 		if (query.key == 'B') {
 			if (processed_bus_queries_.find(query.name) != processed_bus_queries_.end()) {
 				fresh_queryies_.push_back(Query(query.key, processed_bus_queries_.find(query.name)->first));
 			}
 			else {
+				auto bus_info = catalogue.GetBusInfo(query.name);
 				bus_queryies_.push_back(std::string(query.name));
 				fresh_queryies_.push_back(Query(query.key, bus_queryies_.back()));
-				processed_bus_queries_[bus_queryies_.back()] = catalogue.GetBusInfo(query.name);
+				if (bus_info) { 
+					processed_bus_queries_[bus_queryies_.back()] = std::move(*bus_info);
+				}
 			}
 		}
 		else {
@@ -47,9 +38,12 @@ FileUnloader::FileUnloader(TransportCatalogue& catalogue, std::istream& input)
 				fresh_queryies_.push_back(Query(query.key, processed_stop_queries_.find(query.name)->first));
 			}
 			else {
+				auto stop_info = catalogue.GetStopInfo(query.name);
 				stop_queryies_.push_back(std::string(query.name));
 				fresh_queryies_.push_back(Query(query.key, stop_queryies_.back()));
-				processed_stop_queries_[stop_queryies_.back()] = catalogue.GetStopInfo(query.name);
+				if (stop_info) {
+					processed_stop_queries_[stop_queryies_.back()] = std::move(*stop_info);
+				}
 			}
 		}
 	}
@@ -70,54 +64,56 @@ Query FileUnloader::ParseQuery(std::string_view line)
 	return Query(key_query, name);
 }
 
-void FileUnloader::GetResult(std::ostream& output)
+std::string FileUnloader::GetAnswerToBusRequest(std::string_view name)
 {
-	std::for_each(fresh_queryies_.begin(), fresh_queryies_.end(),
-		[&](auto& query) {
-			std::string answer;
-			if (query.key == 'B') {
-				if (processed_bus_queries_.find(query.name) == processed_bus_queries_.end()) {
-					answer = std::string("Bus ") + std::string(query.name) + std::string(": not found\n");
+	std::string bus_answer;
+	bus_answer = std::string("Bus ") + std::string(name) + std::string(": ") +
+		std::to_string(processed_bus_queries_.at(name).stops) + std::string(" stops on route, ") +
+		std::to_string(processed_bus_queries_.at(name).unique_stop) + std::string(" unique stops, ");
+	return bus_answer;
+}
 
-					output << answer;
-				}
-				else {
-					answer = std::string("Bus ") + std::string(query.name) + std::string(": ") +
-						std::to_string(processed_bus_queries_.at(query.name).stops) + std::string(" stops on route, ") +
-						std::to_string(processed_bus_queries_.at(query.name).unique_stop) + std::string(" unique stops, ");
+std::string FileUnloader::GetAnswerToStopRequest(std::string_view name)
+{
+	std::string stop_answer;
+	if (processed_stop_queries_.at(name).bus_on_route.empty()) {
+		stop_answer = std::string("Stop ") + std::string(name) + std::string(": no buses\n");
+	}
+	else {
+		stop_answer = std::string("Stop ") + std::string(name) + std::string(":") + std::string(" buses ");
 
-					output << answer << std::setprecision(6) << processed_bus_queries_.at(query.name).route_length
-						<< std::string(" route length, ") << std::setprecision(6) << processed_bus_queries_.at(query.name).route_curvature
-						<< std::string(" curvature\n");
-				}
+		for (const auto& bus : processed_stop_queries_.at(name).bus_on_route) {
+			stop_answer += bus->name + std::string(" ");
+		}
+		stop_answer.pop_back();
+		stop_answer += std::string("\n");
+	}
+	return stop_answer;
+}
+
+void FileUnloader::DisplayResult(std::ostream& output)
+{
+	for (auto& query : fresh_queryies_) {
+		if (query.key == 'B') {
+			if (processed_bus_queries_.find(query.name) == processed_bus_queries_.end()) {
+				output << std::string("Bus ") + std::string(query.name) + std::string(": not found\n");
 			}
 			else {
-				if (processed_stop_queries_.find(query.name) == processed_stop_queries_.end()) {
-					answer = std::string("Stop ") + std::string(query.name) + std::string(": not found\n");
-
-					output << answer;
-				}
-				else {
-					if (processed_stop_queries_.at(query.name).bus_on_route.empty()) {
-						answer = std::string("Stop ") + std::string(query.name) + std::string(": no buses\n");
-
-						output << answer;
-					}
-					else {
-
-						answer = std::string("Stop ") + std::string(query.name) + std::string(":") + std::string(" buses ");
-
-						for (const auto& bus : processed_stop_queries_.at(query.name).bus_on_route) {
-							answer += bus->name + std::string(" ");
-						}
-						answer.pop_back();
-						answer += std::string("\n");
-
-						output << answer;
-					}
-				}
+				output << GetAnswerToBusRequest(query.name) << std::setprecision(6) << processed_bus_queries_.at(query.name).route_length
+					<< std::string(" route length, ") << std::setprecision(6) << processed_bus_queries_.at(query.name).route_curvature
+					<< std::string(" curvature\n");
 			}
-		});
+		}
+		else {
+			if (processed_stop_queries_.find(query.name) == processed_stop_queries_.end()) {
+				output << std::string("Stop ") + std::string(query.name) + std::string(": not found\n");
+			}
+			else {
+				output << GetAnswerToStopRequest(query.name);
+			}
+		}
+	}
+
 }
 
 }//namespace transport_catalogue::file_unloader

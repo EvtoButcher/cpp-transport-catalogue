@@ -27,9 +27,9 @@ struct Query
 class FileUnloader
 {
 public:
-	FileUnloader(TransportCatalogue& catalogue, std::istream& input);
+	FileUnloader(const TransportCatalogue& catalogue, std::istream& input);
 
-	void GetResult(std::ostream& output);
+	void DisplayResult(std::ostream& output);
 	Query ParseQuery(std::string_view line);
 
 private:
@@ -38,10 +38,13 @@ private:
 	std::vector<Query> fresh_queryies_;
 
 	std::deque<std::string> bus_queryies_;
-	std::unordered_map<std::string_view, detail::BusInfo> processed_bus_queries_;
+	std::unordered_map<std::string_view, BusInfo> processed_bus_queries_;
 
 	std::deque<std::string> stop_queryies_;
-	std::unordered_map<std::string_view, detail::StopInfo> processed_stop_queries_;
+	std::unordered_map<std::string_view, StopInfo> processed_stop_queries_;
+
+	std::string GetAnswerToBusRequest(std::string_view name);
+	std::string GetAnswerToStopRequest(std::string_view name);
 };
 
 }//namespase file_unloader
