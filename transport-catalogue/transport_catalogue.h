@@ -11,7 +11,6 @@
 #include <set>
 
 #include "geo.h"
-#include "input_reader.h"
 
 namespace transport_catalogue {
 
@@ -72,6 +71,8 @@ struct BusInfo
 	double route_curvature;
 };
 
+namespace detail {
+
 struct PairStopHasher {
 	size_t operator() (const std::pair<Stop*, Stop*> stops) const {
 		return stop_hasher(stops.first) + stop_hasher(stops.second) * 37;
@@ -81,10 +82,12 @@ struct PairStopHasher {
 };
 
 struct BusCmp {
-	bool operator()(Bus* bus_l, Bus* bus_r) const{
+	bool operator()(Bus* bus_l, Bus* bus_r) const {
 		return bus_r->name > bus_l->name;
 	}
 };
+
+}//namespace detail
 
 class TransportCatalogue
 {
@@ -114,9 +117,9 @@ private:
 	std::deque<Bus> list_of_bus_{};//маршруты
 	std::unordered_map<std::string_view, Bus*> map_of_bus_{};//доступ к маршруту по имени за О(1)
 
-	std::unordered_map <Stop*, std::set<Bus*, BusCmp>> map_bus_on_stop_{};//автобусы на остановке
+	std::unordered_map <Stop*, std::set<Bus*, detail::BusCmp>> map_bus_on_stop_{};//автобусы на остановке
 
-	std::unordered_map<std::pair<Stop*, Stop*>, unsigned int, PairStopHasher> map_distance_between_stops{};//расстояния между остановками 
+	std::unordered_map<std::pair<Stop*, Stop*>, unsigned int, detail::PairStopHasher> map_distance_between_stops{};//расстояния между остановками 
 };
 
 }//namespace transport_catalogue

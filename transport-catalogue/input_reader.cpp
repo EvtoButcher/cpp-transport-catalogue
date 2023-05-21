@@ -149,7 +149,7 @@ std::unordered_map<std::string_view, std::vector<std::string_view>> FileLoader::
 	return route_;
 }
 
-std::unordered_map<std::pair<std::string_view, std::string_view>, unsigned int, PairStringViewHasher> FileLoader::GetDistances()
+std::unordered_map<std::pair<std::string_view, std::string_view>, unsigned int, detail::PairStringViewHasher> FileLoader::GetDistances()
 {
 	return distance_between_stops_;
 }

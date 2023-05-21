@@ -8,6 +8,8 @@
 
 namespace transport_catalogue::file_loader {
 
+namespace detail{
+
 struct PairStringViewHasher {
 	size_t operator() (const std::pair<std::string_view, std::string_view> stops) const {
 		return str_v_hasher(stops.first) + str_v_hasher(stops.second) * 17;
@@ -15,6 +17,8 @@ struct PairStringViewHasher {
 
 	std::hash<std::string_view> str_v_hasher;
 };
+
+}//namespace detail
 
 class FileLoader
 {
@@ -24,7 +28,7 @@ public:
 
 	std::unordered_map<std::string_view, std::tuple<double, double>> GetBusStop();
 	std::unordered_map<std::string_view, std::vector<std::string_view>> GetBusRoute();
-	std::unordered_map<std::pair<std::string_view, std::string_view>, unsigned int, PairStringViewHasher> GetDistances();
+	std::unordered_map<std::pair<std::string_view, std::string_view>, unsigned int, detail::PairStringViewHasher> GetDistances();
 
 	void ParseQuery(std::string_view line);
 
@@ -35,7 +39,7 @@ private:
 
 	std::unordered_map<std::string_view, std::tuple<double, double>> bus_stop_;
 	std::unordered_map<std::string_view, std::vector<std::string_view>> route_;
-	std::unordered_map<std::pair<std::string_view, std::string_view>, unsigned int, PairStringViewHasher> distance_between_stops_;
+	std::unordered_map<std::pair<std::string_view, std::string_view>, unsigned int, detail::PairStringViewHasher> distance_between_stops_;
 };
 
 std::pair<std::string_view, std::tuple<double, double, std::vector<std::pair<std::string_view, double>>>>ParseStop(std::string_view& line);
