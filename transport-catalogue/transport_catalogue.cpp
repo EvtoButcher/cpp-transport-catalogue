@@ -5,7 +5,7 @@
 
 namespace transport_catalogue {
 
-void TransportCatalogue::AddStop(const std::string_view name, const Coordinates coordinates)
+void TransportCatalogue::AddStop(const std::string_view name, const geo::Coordinates coordinates)
 {
 	if (StopExists(name)) {
 		return;
@@ -16,7 +16,7 @@ void TransportCatalogue::AddStop(const std::string_view name, const Coordinates 
 }
 
 
-void TransportCatalogue::AddBus(const std::string_view bus_name, const std::vector<std::string_view>& stop_on_route)
+void TransportCatalogue::AddBus(const std::string_view bus_name, const std::vector<std::string_view>& stop_on_route, bool is_roundtrip)
 {
 	if (BusExists(bus_name)) {
 		return;
@@ -29,7 +29,7 @@ void TransportCatalogue::AddBus(const std::string_view bus_name, const std::vect
 			st.push_back(map_of_stops_.at(stop_name));
 		});
 	
-	list_of_bus_.emplace_back(Bus(bus_name, st));
+	list_of_bus_.emplace_back(Bus(bus_name, st, is_roundtrip));
 	map_of_bus_[list_of_bus_.back().name] = &list_of_bus_.back();
 		
 	std::for_each(st.begin(), st.end(),
@@ -71,9 +71,9 @@ std::optional<BusInfo>  TransportCatalogue::GetBusInfo(const std::string_view na
 	std::vector<std::string_view> unique_stops_tmp;
 	unique_stops_tmp.reserve(bus_ptr->stop_on_route.size());
 
-	for (int i = 0; i < bus_ptr->stop_on_route.size(); ++i) {
+	for (size_t i = 0; i < bus_ptr->stop_on_route.size(); ++i) {
 		if (i + 1 < bus_ptr->stop_on_route.size()) {
-			route_curvature += ComputeDistance(bus_ptr->stop_on_route[i]->coordinates, bus_ptr->stop_on_route[i + 1]->coordinates);
+			route_curvature += geo::ComputeDistance(bus_ptr->stop_on_route[i]->coordinates, bus_ptr->stop_on_route[i + 1]->coordinates);
 		}
 		unique_stops_tmp.push_back(bus_ptr->stop_on_route[i]->name);
 	}
@@ -104,11 +104,29 @@ std::optional<double> TransportCatalogue::GetRoadDistance(const std::string_view
 {
 	double real_distance = 0.0;
 	auto& route = map_of_bus_.at(bus_name)->stop_on_route;
-	for (int i = 0; i + 1 < route.size(); ++i) {
+	for (size_t i = 0; i + 1 < route.size(); ++i) {
 		real_distance += map_distance_between_stops.at(std::make_pair(route[i], route[i + 1]));
 	}
 
 	return real_distance;
+}
+
+std::optional<std::vector<Bus*>> TransportCatalogue::GetSortedAllBuses() const
+{
+	std::vector<Bus*> all_buses; 
+	all_buses.reserve(map_of_bus_.size());
+
+	std::transform(map_of_bus_.cbegin(), map_of_bus_.cend(), std::back_inserter(all_buses),
+		[](const auto& key_bus){
+			return key_bus.second;
+		});
+
+	std::sort(all_buses.begin(), all_buses.end(),
+		[](const auto& lhs, const auto& rhs){
+			return lhs->name < rhs->name;
+		});
+
+	return all_buses;
 }
 
 bool TransportCatalogue::BusExists(std::string_view name) const

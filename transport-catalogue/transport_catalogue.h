@@ -11,83 +11,11 @@
 #include <set>
 
 #include "geo.h"
+#include "domain.h"
 
 namespace transport_catalogue {
 
-struct Stop
-{
-	Stop() = default;
-
-	Stop(std::string_view n, double latit, double longit)
-		: name(std::string(n))
-		, coordinates(latit, longit)
-	{};
-
-	std::string name;
-
-	Coordinates coordinates;
-};
-
-struct Bus
-{
-	Bus() = default;
-
-	Bus(std::string_view n, std::vector<Stop*> v)
-		: name(std::string(n))
-		, stop_on_route(v)
-	{};
-
-	std::string name;
-	std::vector<Stop*> stop_on_route;
-};
-
-struct StopInfo
-{
-	StopInfo() = default;
-
-	StopInfo(std::string_view n, std::vector<Bus*> b)
-		:name(n),
-		bus_on_route(std::move(b))
-	{};
-
-	std::string_view name;
-	std::vector<Bus*> bus_on_route;
-};
-
-struct BusInfo
-{
-	BusInfo() = default;
-
-	BusInfo(size_t s, size_t u_s, double l, double c)
-		: stops(s)
-		, unique_stop(u_s)
-		, route_length(l)
-		, route_curvature(c)
-	{};
-
-	size_t stops;
-	size_t unique_stop;
-	double route_length;
-	double route_curvature;
-};
-
-namespace detail {
-
-struct PairStopHasher {
-	size_t operator() (const std::pair<Stop*, Stop*> stops) const {
-		return stop_hasher(stops.first) + stop_hasher(stops.second) * 37;
-	}
-
-	std::hash<const void*> stop_hasher;
-};
-
-struct BusCmp {
-	bool operator()(Bus* bus_l, Bus* bus_r) const {
-		return bus_r->name > bus_l->name;
-	}
-};
-
-}//namespace detail
+using namespace domain;
 
 class TransportCatalogue
 {
@@ -95,8 +23,8 @@ public:
 
 	TransportCatalogue() = default;
 
-	void AddStop(std::string_view name, Coordinates coordinates);
-	void AddBus(std::string_view name, const std::vector<std::string_view>& stop_on_route);
+	void AddStop(std::string_view name, geo::Coordinates coordinates);
+	void AddBus(std::string_view name, const std::vector<std::string_view>& stop_on_route, bool is_roundtrip);
 	void AddDistanceFromTo(std::string_view current_stop_name, std::string_view other_stop_name, unsigned int distance_to_stops);
 
 	const Bus* FindBus(std::string_view name) const;
@@ -105,6 +33,7 @@ public:
 	std::optional<BusInfo> GetBusInfo(std::string_view name) const;
 	std::optional <StopInfo> GetStopInfo(std::string_view name) const;
 	std::optional<double> GetRoadDistance(std::string_view name) const;
+	std::optional< std::vector<domain::Bus*>> GetSortedAllBuses() const;
 
 	bool BusExists(std::string_view name) const;
 	bool StopExists(std::string_view name) const;

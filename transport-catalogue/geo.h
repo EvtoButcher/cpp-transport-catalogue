@@ -1,15 +1,16 @@
 ﻿#pragma once
 #include <cmath>
 
-namespace transport_catalogue{
+namespace geo{
 
 struct Coordinates {
+    Coordinates() = default;
     Coordinates(double la , double ln)
         : lat(la)
         , lng(ln){
     }
-    double lat;
-    double lng;
+    double lat = 0.0;
+    double lng = 0.0;
     bool operator==(const Coordinates& other) const {
         return lat == other.lat && lng == other.lng;
     }

@@ -3,44 +3,31 @@
 #include <ostream>
 #include <string> 
 
-#include "stat_reader.h"
-#include "input_reader.h"
-#include "transport_catalogue.h"
+#include "json_reader.h"
+#include "request_handler.h"
 #include "log_duration.h"
 
 using namespace std;
 using namespace transport_catalogue;
-
-void StartCatalogue(std::istream& input, std::ostream& output)
-{
-	file_loader::FileLoader file(input);
-	TransportCatalogue catalogue;
-
-	for (const auto& [name, stop] : file.GetBusStop()) {
-		catalogue.AddStop(name, Coordinates(std::get<0>(stop), std::get<1>(stop)));
-	}
-
-	for (const auto& [name, route] : file.GetBusRoute()) {
-		catalogue.AddBus(name, route);
-	}
-
-	for (auto& [stop_names, distance_to] : file.GetDistances()) {
-		catalogue.AddDistanceFromTo(stop_names.first, stop_names.second, distance_to);
-	}
-
-	file_unloader::FileUnloader query(catalogue, input);
-
-	query.DisplayResult(output);
-}
+using namespace render;
 
 int main() {
 
-	std::ifstream in("Test.txt");
+	ifstream in("Test.txt");
 
-	std::ofstream out;
+	TransportCatalogue tc;
+	MapRenderer map;
+
+	JesonReader input_json(json::Load(in));
+	input_json.FiilCatalogue(tc);
+	input_json.FillRenderProperties(map.GetRenderProperties());
+
+
+	ofstream out;
 	out.open("hello.txt");
-	
-	StartCatalogue(in, out);
+
+	RequestHandler hendler(tc, map);
+	hendler.DisplayResult(input_json.GetRequestsToCatalogue(), out);
 
 	out.close();
 
