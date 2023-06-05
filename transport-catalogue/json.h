@@ -19,7 +19,7 @@ using Dict = std::map<std::string, Node>;
 using Array = std::vector<Node>;
 using NodeValue = std::variant<std::nullptr_t, Array, Dict, bool, int, double, std::string>;
 
-class Node final : NodeValue {
+class Node final : private NodeValue {
 public:
 
     using NodeValue::NodeValue;

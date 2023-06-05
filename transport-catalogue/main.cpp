@@ -8,6 +8,7 @@
 #include "log_duration.h"
 
 using namespace std;
+using namespace tc_project;
 using namespace transport_catalogue;
 using namespace render;
 

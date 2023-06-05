@@ -4,6 +4,8 @@
 
 using namespace std::literals;
 
+namespace tc_project {
+
 JesonReader::JesonReader(json::Document document)
 	:input_document_(document)
 {
@@ -80,38 +82,12 @@ void JesonReader::FillRenderProperties(render::RenderProperties& properties)
 	properties.stop_label_offset_.x = render_properties.at("stop_label_offset"s).AsArray()[0].AsDouble();
 	properties.stop_label_offset_.y = render_properties.at("stop_label_offset"s).AsArray()[1].AsDouble();
 
-	const auto& under_color = render_properties.at("underlayer_color"s);
-	if (under_color.IsString()) {
-		properties.underlayer_color_ = under_color.AsString();
-	}
-	else {
-		const auto& rgb = under_color.AsArray();
-		if (rgb.size() == 3) {
-			properties.underlayer_color_ = svg::Rgb(rgb[0].AsInt(), rgb[1].AsInt(), rgb[2].AsInt());
-		}
-		else {
-			properties.underlayer_color_ = svg::Rgba(rgb[0].AsInt(), rgb[1].AsInt(), rgb[2].AsInt(), rgb[3].AsDouble());
-		}
-	}
+	properties.underlayer_color_ = ReadColor(render_properties.at("underlayer_color"s));
 
 	const json::Array& colors = render_properties.at("color_palette"s).AsArray();
 	properties.color_palette_.reserve(colors.size());
 	for (const auto& color : colors) {
-		if (color.IsString()) {
-			properties.color_palette_.emplace_back(color.AsString());
-			continue;
-		}
-		if (color.AsArray().size() == 3) {
-			properties.color_palette_.emplace_back(svg::Rgb(color.AsArray()[0].AsInt(),
-				color.AsArray()[1].AsInt(),
-				color.AsArray()[2].AsInt()));
-		}
-		else {
-			properties.color_palette_.emplace_back(svg::Rgba(color.AsArray()[0].AsInt(),
-				color.AsArray()[1].AsInt(),
-				color.AsArray()[2].AsInt(),
-				color.AsArray()[3].AsDouble()));
-		}
+		properties.color_palette_.emplace_back(ReadColor(color));
 	}
 }
 
@@ -170,3 +146,21 @@ void JesonReader::ReadStop(const json::Dict& stop)
 				bus_stop_.find(other_stop.first)->first)] = other_stop.second.AsInt();
 		});
 }
+
+svg::Color JesonReader::ReadColor(const json::Node& color)
+{
+	if (color.IsString()) {
+		return color.AsString();
+	}
+	else {
+		const auto& rgb = color.AsArray();
+		if (rgb.size() == 3) {
+			return svg::Rgb(rgb[0].AsInt(), rgb[1].AsInt(), rgb[2].AsInt());
+		}
+		else {
+			return svg::Rgba(rgb[0].AsInt(), rgb[1].AsInt(), rgb[2].AsInt(), rgb[3].AsDouble());
+		}
+	}
+}
+
+}//namespace tc_project

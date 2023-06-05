@@ -2,6 +2,8 @@
 #include <algorithm>
 #include <map>
 
+namespace tc_project {
+
 namespace render {
 
 bool IsZero(double value)
@@ -177,3 +179,5 @@ void MapRenderer::AddStopName(std::map<std::string_view, geo::Coordinates>& stop
 }
 
 }//namespace render
+
+}//namespace tc_project

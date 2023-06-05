@@ -5,6 +5,8 @@
 
 #include "geo.h"
 
+namespace tc_project {
+
 namespace domain {
 
 struct Stop
@@ -64,4 +66,6 @@ namespace detail {
 
 }//namespace detail
 
-}//namespace transport_catalogue
+}//namespace domain
+
+}//namespace tc_project

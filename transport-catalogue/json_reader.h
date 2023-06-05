@@ -3,6 +3,10 @@
 #include "transport_catalogue.h"
 #include "map_renderer.h"
 
+namespace tc_project {
+
+namespace detail {
+
 struct PairStringViewHasher {
 	size_t operator() (const std::pair<std::string_view, std::string_view> stops) const {
 		return str_v_hasher(stops.first) + str_v_hasher(stops.second) * 17;
@@ -11,10 +15,12 @@ struct PairStringViewHasher {
 	std::hash<std::string_view> str_v_hasher;
 };
 
+}//namespace detail
+
 class JesonReader 
 {
 public:
-	JesonReader(json::Document document);
+	explicit JesonReader(json::Document document);
 
 	const json::Node& GetBaseRequests() const;
 	const json::Node& GetRequestsToCatalogue() const;
@@ -27,15 +33,17 @@ private:
 
 	void ReadBus(const json::Dict& bus);
 	void ReadStop(const json::Dict& stop);
+	svg::Color ReadColor(const json::Node& color);
 
 	json::Document input_document_;
-	json::Node empty_node_{ nullptr };
+	inline static json::Node empty_node_{ nullptr };
 
 	std::deque<std::string> name_ini_;// инициализация имён для карты
 	std::deque<std::vector<std::string>> bus_ini_;// инициализация маршрутов для карты
 
 	std::unordered_map<std::string_view, std::pair<double, double>> bus_stop_;
 	std::unordered_map<std::string_view, std::pair<std::vector<std::string_view>, bool>> route_;
-	std::unordered_map<std::pair<std::string_view, std::string_view>, unsigned int, PairStringViewHasher> distance_between_stops_;
+	std::unordered_map<std::pair<std::string_view, std::string_view>, unsigned int, detail::PairStringViewHasher> distance_between_stops_;
 };
 
+}//namespace tc_pproject

@@ -4,6 +4,8 @@
 
 using namespace std::literals;
 
+namespace tc_project {
+
 RequestHandler::RequestHandler(transport_catalogue::TransportCatalogue& tc, render::MapRenderer& map)
 	: catalogue_(tc)
 	, map_(map)
@@ -91,3 +93,5 @@ json::Node FindMapInfo(std::string_view render_obj, int id)
 	return json::Dict{ {"request_id"s, id}
 					,{"error_message"s, "not found"s} };
 }
+
+}//namespace tc_project

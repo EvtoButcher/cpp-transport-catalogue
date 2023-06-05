@@ -1,15 +1,14 @@
 #include "json.h"
 #include <math.h>
 
-
-using namespace std;
+using namespace std::literals;
 
 namespace json {
 
 namespace {
 
 // ---------- Loaders ------------------
-Node LoadNode(istream& input);
+Node LoadNode(std::istream& input);
 
 std::string LoadLiteral(std::istream& input)
 {
@@ -21,7 +20,7 @@ std::string LoadLiteral(std::istream& input)
     return s;
 }
 
-Node LoadArray(istream& input) {
+Node LoadArray(std::istream& input) {
     std::vector<Node> result;
 
     for (char c; input >> c && c != ']';)
@@ -39,7 +38,7 @@ Node LoadArray(istream& input) {
     return Node(std::move(result));
 }
 
-Node LoadString(istream& input) {
+Node LoadString(std::istream& input) {
     auto it = std::istreambuf_iterator<char>(input);
     auto end = std::istreambuf_iterator<char>();
     std::string s;
@@ -96,7 +95,7 @@ Node LoadString(istream& input) {
     return Node(std::move(s));
 }
 
-Node LoadDict(istream& input) {
+Node LoadDict(std::istream& input) {
     Dict dict;
 
     for (char c; input >> c && c != '}';)
@@ -108,7 +107,7 @@ Node LoadDict(istream& input) {
             {
                 if (dict.find(key) != dict.end())
                 {
-                    throw ParsingError("Duplicate key '"s + key + "' have been found");
+                    throw ParsingError("Duplicate key '"s + key + "' have been found"s);
                 }
                 dict.emplace(std::move(key), LoadNode(input));
             }
@@ -129,7 +128,7 @@ Node LoadDict(istream& input) {
     return Node(std::move(dict));
 }
 
-Node LoadBool(istream& input) {
+Node LoadBool(std::istream& input) {
     auto line = LoadLiteral(input);
     if (line == "true"sv)
     {
@@ -145,7 +144,7 @@ Node LoadBool(istream& input) {
     }
 }
 
-Node LoadNull(istream& input) {
+Node LoadNull(std::istream& input) {
 
     if (auto literal = LoadLiteral(input); literal == "null"sv)
     {
@@ -233,7 +232,7 @@ Node LoadNumber(std::istream& input)
     }
 }
 
-Node LoadNode(istream& input) {
+Node LoadNode(std::istream& input) {
     char c;
     if (!(input >> c))
     {
@@ -267,7 +266,7 @@ Node LoadNode(istream& input) {
 
 bool Node::IsInt() const
 {
-    return holds_alternative<int>(*this);
+    return std::holds_alternative<int>(*this);
 }
 
 bool Node::IsDouble() const
@@ -277,40 +276,40 @@ bool Node::IsDouble() const
 
 bool Node::IsPureDouble() const
 {
-    return holds_alternative<double>(*this);
+    return std::holds_alternative<double>(*this);
 }
 
 bool Node::IsBool() const
 {
-    return holds_alternative<bool>(*this);
+    return std::holds_alternative<bool>(*this);
 }
 
 bool Node::IsString() const
 {
-    return holds_alternative<std::string>(*this);
+    return std::holds_alternative<std::string>(*this);
 }
 
 bool Node::IsNull() const
 {
-    return holds_alternative<nullptr_t>(*this);
+    return std::holds_alternative<nullptr_t>(*this);
 }
 
 bool Node::IsArray() const
 {
-    return holds_alternative<Array>(*this);
+    return std::holds_alternative<Array>(*this);
 }
 
 bool Node::IsMap() const
 {
-    return holds_alternative<Dict>(*this);
+    return std::holds_alternative<Dict>(*this);
 }
 
 const Array& Node::AsArray() const {
-    return IsArray() ? std::get<Array>(*this) : throw std::logic_error("Not a Array");
+    return IsArray() ? std::get<Array>(*this) : throw std::logic_error("Not a Array"s);
 }
 
 const Dict& Node::AsMap() const {
-    return IsMap() ? std::get<Dict>(*this) : throw std::logic_error("Not a map");
+    return IsMap() ? std::get<Dict>(*this) : throw std::logic_error("Not a map"s);
 }
 
 bool Node::operator==(const Node& rhs) const
@@ -324,18 +323,18 @@ const Node& Node::GetValue() const
 }
 
 int Node::AsInt() const {
-    return IsInt() ? std::get<int>(*this) : throw std::logic_error("Not a int");
+    return IsInt() ? std::get<int>(*this) : throw std::logic_error("Not a int"s);
 }
 
 bool Node::AsBool() const
 {
-    return IsBool() ? std::get<bool>(*this) : throw std::logic_error("Not a bool");
+    return IsBool() ? std::get<bool>(*this) : throw std::logic_error("Not a bool"s);
 }
 
 double Node::AsDouble() const
 {
     if (!IsDouble()) {
-        throw std::logic_error("Not a double");
+        throw std::logic_error("Not a double"s);
     }
     else if (IsPureDouble()) {
         return std::get<double>(*this);
@@ -345,8 +344,8 @@ double Node::AsDouble() const
     }
 }
 
-const string& Node::AsString() const {
-    return IsString() ? std::get<string>(*this) : throw std::logic_error("Not a string");
+const std::string& Node::AsString() const {
+    return IsString() ? std::get<std::string>(*this) : throw std::logic_error("Not a string"s);
 }
 
 // ---------- Document ------------------
@@ -359,7 +358,7 @@ const Node& Document::GetRoot() const {
     return root_;
 }
 
-Document Load(istream& input) {
+Document Load(std::istream& input) {
     return Document{ LoadNode(input) };
 }
 
@@ -403,12 +402,11 @@ void PrintNode::operator()(const Node& node) const
 
 void PrintNode::operator()(nullptr_t) const
 {
-        out << std::string("null");
+        out << "null"sv;
 }
 
 void PrintNode::operator()(Array value) const
 {
-    using namespace std::literals;
     out << "[\n"sv;
     bool not_first = false;
     for (const Node& node : value)
@@ -424,7 +422,6 @@ void PrintNode::operator()(Array value) const
 
 void PrintNode::operator()(Dict value) const
 {
-    using namespace std::literals;
     out << "{\n"sv;
     bool first = true;
 
@@ -464,7 +461,7 @@ void PrintNode::operator()(double value) const
 
 void PrintNode::operator()(std::string value) const
 {
-    using namespace std::literals;
+  
     out.put('"');
     for (const char c : value)
     {
