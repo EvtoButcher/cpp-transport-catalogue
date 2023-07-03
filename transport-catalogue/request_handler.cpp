@@ -1,5 +1,5 @@
 #include "request_handler.h"
-
+#include "json_builder.h"
 #include <algorithm>
 
 using namespace std::literals;
@@ -37,7 +37,7 @@ void RequestHandler::DisplayResult(const json::Node& document, std::ostream& out
 		}
 	}
 
-	json::Print(json::Document(json::Node(std::move(output_array))), output);
+	json::Print(json::Document{json::Builder{}.Value(std::move(output_array)).Build()}, output);
 }
 
 std::vector<domain::Bus*> RequestHandler::GetAllBuses()
@@ -61,11 +61,20 @@ json::Node FindStopInfo(transport_catalogue::TransportCatalogue& tc, std::string
 		for (const auto& bus : info->bus_on_route) {
 			bus_name.emplace_back(bus->name);
 		}
-
-		return json::Dict{ {"buses"s, json::Array{bus_name.begin(), bus_name.end()}}, {"request_id"s, id}};
+		
+		return json::Builder{}
+					.StartDict()
+						.Key("buses"s).Value(json::Array{ bus_name.begin(), bus_name.end() })
+						.Key("request_id"s).Value(id)
+					.EndDict()
+					.Build();
 	}
-	return json::Dict{ {"request_id"s, id}
-					,{"error_message"s, "not found"s} };
+	return json::Builder{}
+				.StartDict()
+					.Key("request_id"s).Value(id)
+					.Key("error_message"s).Value("not found"s)
+				.EndDict()
+				.Build();
 }
 
 json::Node FindBusInfo(transport_catalogue::TransportCatalogue& tc, std::string_view bus_name, int id)
@@ -73,25 +82,43 @@ json::Node FindBusInfo(transport_catalogue::TransportCatalogue& tc, std::string_
 	auto info = tc.GetBusInfo(bus_name);
 
 	if (info.has_value()) {
-		return json::Dict{ {"curvature"s, info->route_curvature}, 
-						   {"request_id"s, id}, {"route_length"s, info->route_length},
-						   {"stop_count"s, static_cast<int>(info->stops)}, 
-						   {"unique_stop_count"s, static_cast<int>(info->unique_stop)} };
+		
+		return json::Builder{}
+					.StartDict()
+						.Key("curvature"s).Value(info->route_curvature)
+						.Key("request_id"s).Value(id)
+						.Key("route_length"s).Value(info->route_length)
+						.Key("stop_count"s).Value(static_cast<int>(info->stops))
+						.Key("unique_stop_count"s).Value(static_cast<int>(info->unique_stop))
+					.EndDict()
+					.Build();
 	}
 
-	return json::Dict{ {"request_id"s, id}
-					,{"error_message"s, "not found"s} };
+	return json::Builder{}
+				.StartDict()
+					.Key("request_id"s).Value(id)
+					.Key("error_message"s).Value("not found"s)
+				.EndDict()
+				.Build();
 }
 
 json::Node FindMapInfo(std::string_view render_obj, int id)
 {
 	if (!render_obj.empty()) {
-		return json::Dict{ {"map"s, std::string(render_obj)},
-							{"request_id"s, id}};
+		return json::Builder{}
+					.StartDict()
+						.Key("map"s).Value(std::string(render_obj))
+						.Key("request_id"s).Value(id)
+					.EndDict()
+					.Build();
 	}
 
-	return json::Dict{ {"request_id"s, id}
-					,{"error_message"s, "not found"s} };
+	return json::Builder{}
+				.StartDict()
+					.Key("request_id"s).Value(id)
+					.Key("error_message"s).Value("not found"s)
+				.EndDict()
+				.Build();
 }
 
 }//namespace tc_project

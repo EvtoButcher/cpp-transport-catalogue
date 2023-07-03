@@ -144,7 +144,7 @@ void Text::RenderObject(const RenderContext& context) const
 // ---------- Document ------------------
 
 void Document::AddPtr(std::unique_ptr<Object>&& obj)
-{
+{ 
     svg_objects_.emplace_back(std::move(obj));
 }
 
