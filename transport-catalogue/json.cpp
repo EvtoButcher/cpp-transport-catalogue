@@ -264,6 +264,31 @@ namespace json {
 
     // ---------- Node ------------------
 
+    Node::Node(NodeValue& value)
+    {
+        if (std::holds_alternative<std::string>(value)) {
+            *this = Node(std::get<std::string>(value));
+        }
+        else if (std::holds_alternative<int>(value)) {
+            *this = Node(std::get<int>(value));
+        }
+        else if (std::holds_alternative<bool>(value)) {
+            *this = Node(std::get<bool>(value));
+        }
+        else if (std::holds_alternative<double>(value)) {
+            *this = Node(std::get<double>(value));
+        }
+        else if (std::holds_alternative<Array>(value)) {
+            *this = Node(std::get<Array>(value));
+        }
+        else if (std::holds_alternative<Dict>(value)) {
+            *this = Node(std::get<Dict>(value));
+        }
+        else {
+            *this = Node(nullptr);
+        }
+    }
+
     bool Node::IsInt() const
     {
         return std::holds_alternative<int>(*this);

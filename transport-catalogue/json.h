@@ -21,8 +21,11 @@ namespace json {
 
     class Node final : private NodeValue {
     public:
-
+        
         using NodeValue::NodeValue;
+
+        Node() = default;
+        Node(NodeValue& value);
 
         bool IsInt() const;
         bool IsDouble() const;
@@ -44,7 +47,6 @@ namespace json {
 
         const NodeValue& GetValue() const;
         NodeValue& GetValue();
-
     };
 
     inline bool operator!=(const Node& lhs, const Node& rhs) {

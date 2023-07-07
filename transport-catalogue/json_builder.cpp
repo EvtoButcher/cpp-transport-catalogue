@@ -3,34 +3,14 @@
 
 namespace json {
 
-Builder& Builder::Value(NodeValue&& value)
+Builder& Builder::Value(NodeValue value)
 {
     if (root && nodes_stack_.empty()) {
         throw std::logic_error("Value error: invalid method call context");
     }
 
-    if (std::holds_alternative<std::string>(value)) {
-        root = Node(std::get<std::string>(value));
-    }
-    else if (std::holds_alternative<int>(value)) {
-        root = Node(std::get<int>(value));
-    }
-    else if (std::holds_alternative<bool>(value)) {
-        root = Node(std::get<bool>(value));
-    }
-    else if (std::holds_alternative<double>(value)) {
-        root = Node(std::get<double>(value));
-    }
-    else if (std::holds_alternative<Array>(value)) {
-        root = Node(std::get<Array>(value));
-    }
-    else if (std::holds_alternative<Dict>(value)) {
-        root = Node(std::get<Dict>(value));
-    }
-    else {
-        root = Node(nullptr);
-    }
 
+    root = Node(value);
 
     if (!nodes_stack_.empty())
     {
@@ -50,7 +30,7 @@ Builder& Builder::Value(NodeValue&& value)
     return *this;
 }
 
-BaseContext Builder::StartDict()
+Builder::BaseContext Builder::StartDict()
 {
     root = Dict();
     nodes_stack_.push_back(std::make_unique<Node>(*root));
@@ -59,7 +39,7 @@ BaseContext Builder::StartDict()
     return BaseContext(*this);
 }
 
-DictContext Builder::Key(std::string&& key)
+Builder::DictContext Builder::Key(std::string&& key)
 {
     key_opened_ = true;
 
@@ -83,9 +63,14 @@ Builder& Builder::EndDict()
             std::get<Array>(nodes_stack_.back()->GetValue()).push_back(node_back);
         }
         else {
-            std::get<Dict>(nodes_stack_.back()->GetValue())[last_key.back()] = node_back;
-            last_key.pop_back();
-            key_opened_ = false;
+            if (!last_key.empty()) {
+                std::get<Dict>(nodes_stack_.back()->GetValue())[last_key.back()] = node_back;
+                last_key.pop_back();
+                key_opened_ = false;
+            }
+            else {
+                throw std::logic_error("EndDict error: invalid method call context");
+            }
         }
     }
     else {
@@ -96,7 +81,7 @@ Builder& Builder::EndDict()
     return *this;
 }
 
-ArrayContext Builder::StartArray()
+Builder::ArrayContext Builder::StartArray()
 {
     if (root && nodes_stack_.empty()) {
         throw std::logic_error("StartArray error: invalid method call context");
@@ -118,9 +103,14 @@ Builder& Builder::EndArray()
         auto node_back = std::move(*nodes_stack_.back());
         nodes_stack_.pop_back();
         if (nodes_stack_.back()->IsDict()) {
-            std::get<Dict>(nodes_stack_.back()->GetValue())[last_key.back()] = std::move(node_back);
-            last_key.pop_back();
-            key_opened_ = false;
+            if (!last_key.empty()) {
+                std::get<Dict>(nodes_stack_.back()->GetValue())[last_key.back()] = std::move(node_back);
+                last_key.pop_back();
+                key_opened_ = false;
+            }
+            else {
+                throw std::logic_error("EndArray error: invalid method call context");
+            }
         }
         else {
             std::get<Array>(nodes_stack_.back()->GetValue()).push_back(std::move(node_back));
@@ -147,59 +137,59 @@ Node Builder::Build()
     return *root;
 }
 
-BaseContext::BaseContext(Builder& b)
+Builder::BaseContext::BaseContext(Builder& b)
     : builder_(b) {
 }
 
-DictContext BaseContext::Key(std::string key)
+Builder::DictContext Builder::BaseContext::Key(std::string key)
 {
     return builder_.Key(std::move(key));
 }
 
-Builder& BaseContext::EndDict()
+Builder& Builder::BaseContext::EndDict()
 {
     return builder_.EndDict();
 }
 
-DictContext::DictContext(Builder& b)
+Builder::DictContext::DictContext(Builder& b)
     : builder_(b) {
 }
 
-BaseContext DictContext::Value(NodeValue&& value)
+Builder::BaseContext Builder::DictContext::Value(NodeValue&& value)
 {
     return BaseContext(builder_.Value(std::move(value)));
 }
 
-BaseContext DictContext::StartDict()
+Builder::BaseContext Builder::DictContext::StartDict()
 {
     return builder_.StartDict();
 }
 
-ArrayContext DictContext::StartArray()
+Builder::ArrayContext Builder::DictContext::StartArray()
 {
     return builder_.StartArray();
 }
 
-ArrayContext::ArrayContext(Builder& b)
+Builder::ArrayContext::ArrayContext(Builder& b)
     : builder_(b) {
 }
 
-ArrayContext json::ArrayContext::Value(NodeValue&& value)
+Builder::ArrayContext Builder::ArrayContext::Value(NodeValue&& value)
 {
-    return ArrayContext(builder_.Value(std::move(value)));
+    return Builder::ArrayContext(builder_.Value(std::move(value)));
 }
 
-BaseContext ArrayContext::StartDict()
+Builder::BaseContext Builder::ArrayContext::StartDict()
 {
     return builder_.StartDict();
 }
 
-ArrayContext ArrayContext::StartArray()
+Builder::ArrayContext Builder::ArrayContext::StartArray()
 {
     return builder_.StartArray();
 }
 
-Builder& ArrayContext::EndArray()
+Builder& Builder::ArrayContext::EndArray()
 {
     return builder_.EndArray();
 }

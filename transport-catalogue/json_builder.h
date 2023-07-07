@@ -7,17 +7,16 @@
 
 namespace json {
 
-	class BaseContext;
-	class ArrayContext;
-	class DictContext;
-
 	class Builder
 	{
 	public:
+		class BaseContext;
+		class ArrayContext;
+		class DictContext;
 
 		Builder() = default;
 
-		Builder& Value(NodeValue&& value);
+		Builder& Value(NodeValue value);
 
 		BaseContext StartDict();
 		DictContext Key(std::string&& key);
@@ -36,7 +35,7 @@ namespace json {
 	};
 
 
-	class BaseContext
+	class Builder::BaseContext
 	{
 	public:
 		BaseContext(Builder& b);
@@ -46,7 +45,7 @@ namespace json {
 		Builder& builder_;
 	};
 
-	class DictContext
+	class Builder::DictContext
 	{
 	public:
 		DictContext(Builder& b);
@@ -57,7 +56,7 @@ namespace json {
 		Builder& builder_;
 	};
 
-	class ArrayContext
+	class Builder::ArrayContext
 	{
 	public:
 		ArrayContext(Builder& b);
