@@ -25,7 +25,7 @@ namespace json {
         using NodeValue::NodeValue;
 
         Node() = default;
-        Node(NodeValue& value);
+        Node(NodeValue value);
 
         bool IsInt() const;
         bool IsDouble() const;

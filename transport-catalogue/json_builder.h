@@ -19,7 +19,7 @@ namespace json {
 		Builder& Value(NodeValue value);
 
 		BaseContext StartDict();
-		DictContext Key(std::string&& key);
+		DictContext Key(std::string key);
 		Builder& EndDict();
 
 		ArrayContext StartArray();
@@ -49,7 +49,7 @@ namespace json {
 	{
 	public:
 		DictContext(Builder& b);
-		BaseContext Value(NodeValue&& value);
+		BaseContext Value(NodeValue value);
 		BaseContext StartDict();
 		ArrayContext StartArray();
 	private:
@@ -60,7 +60,7 @@ namespace json {
 	{
 	public:
 		ArrayContext(Builder& b);
-		ArrayContext Value(NodeValue&& value);
+		ArrayContext Value(NodeValue value);
 		BaseContext StartDict();
 		ArrayContext StartArray();
 		Builder& EndArray();

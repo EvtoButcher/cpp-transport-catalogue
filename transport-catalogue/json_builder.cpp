@@ -9,8 +9,7 @@ Builder& Builder::Value(NodeValue value)
         throw std::logic_error("Value error: invalid method call context");
     }
 
-
-    root = Node(value);
+    root = std::move(Node(value));
 
     if (!nodes_stack_.empty())
     {
@@ -39,7 +38,7 @@ Builder::BaseContext Builder::StartDict()
     return BaseContext(*this);
 }
 
-Builder::DictContext Builder::Key(std::string&& key)
+Builder::DictContext Builder::Key(std::string key)
 {
     key_opened_ = true;
 
@@ -155,7 +154,7 @@ Builder::DictContext::DictContext(Builder& b)
     : builder_(b) {
 }
 
-Builder::BaseContext Builder::DictContext::Value(NodeValue&& value)
+Builder::BaseContext Builder::DictContext::Value(NodeValue value)
 {
     return BaseContext(builder_.Value(std::move(value)));
 }
@@ -174,7 +173,7 @@ Builder::ArrayContext::ArrayContext(Builder& b)
     : builder_(b) {
 }
 
-Builder::ArrayContext Builder::ArrayContext::Value(NodeValue&& value)
+Builder::ArrayContext Builder::ArrayContext::Value(NodeValue value)
 {
     return Builder::ArrayContext(builder_.Value(std::move(value)));
 }
