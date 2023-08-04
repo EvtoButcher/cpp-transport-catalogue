@@ -6,9 +6,10 @@ using namespace std::literals;
 
 namespace tc_project {
 
-RequestHandler::RequestHandler(transport_catalogue::TransportCatalogue& tc, render::MapRenderer& map)
+RequestHandler::RequestHandler(transport_catalogue::TransportCatalogue& tc, render::MapRenderer& map, transport_router::TransportRouter& router)
 	: catalogue_(tc)
 	, map_(map)
+	, router_(router)
 {}
 
 void RequestHandler::DisplayResult(const json::Node& document, std::ostream& output)
@@ -28,6 +29,9 @@ void RequestHandler::DisplayResult(const json::Node& document, std::ostream& out
 			map_.Render(xml_map, GetAllBuses());
 			output_array.emplace_back(FindMapInfo(xml_map.str(), request_data.at("id"s).AsInt()));
 			map_is_processed = true;
+		}
+		else if(request_data.at("type"s).AsString() == "Route"sv) {
+			output_array.emplace_back(FindRoureInfo(router_, request_data.at("from"s).AsString(), request_data.at("to"s).AsString(), request_data.at("id"s).AsInt()));
 		}
 		else if(request_data.at("type"s).AsString() == "Stop"sv) {
 			output_array.emplace_back(FindStopInfo(catalogue_, request_data.at("name"s).AsString(), request_data.at("id"s).AsInt()));
@@ -119,6 +123,34 @@ json::Node FindMapInfo(std::string_view render_obj, int id)
 					.Key("error_message"s).Value("not found"s)
 				.EndDict()
 				.Build();
+}
+
+json::Node FindRoureInfo(transport_router::TransportRouter& router, std::string_view from, std::string_view to, int id)
+{
+	json::Builder result;
+	auto tc_router = router.BuildRouter(from, to);
+	if (!tc_router) {
+		return json::Builder{}.StartDict().Key("request_id"s).Value(id)
+			.Key("error_message"s).Value("not found"s).EndDict().Build();
+	}
+	else {
+		const auto& graph = router.GetGraph();
+		result.StartDict().Key("items"s).StartArray();
+		for (const auto& edge : tc_router->edges) {
+			const auto& edge_info = graph.GetEdge(edge);
+			auto wait_time = router.GetRouterSettings().bus_wait_time_;
+			result.StartDict().Key("stop_name"s).Value(std::string(router.GetStopNameFromID(edge_info.from)))
+				.Key("time"s).Value(wait_time)
+				.Key("type"s).Value("Wait"s).EndDict()
+				.StartDict().Key("bus"s).Value(std::string(edge_info.weight.bus_name))
+				.Key("span_count"s).Value(edge_info.weight.span_count)
+				.Key("time"s).Value(edge_info.weight.total_time - wait_time)
+				.Key("type"s).Value("Bus"s).EndDict();
+		}
+		result.EndArray().Key("request_id"s).Value(id)
+			.Key("total_time"s).Value(tc_router->weight.total_time).EndDict();
+	}
+	return result.Build();
 }
 
 }//namespace tc_project

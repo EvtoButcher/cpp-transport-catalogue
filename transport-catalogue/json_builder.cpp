@@ -9,7 +9,7 @@ Builder& Builder::Value(NodeValue value)
         throw std::logic_error("Value error: invalid method call context");
     }
 
-    root = std::move(Node(value));
+    root = Node(std::move(value));
 
     if (!nodes_stack_.empty())
     {

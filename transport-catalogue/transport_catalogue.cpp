@@ -131,6 +131,29 @@ std::optional<std::vector<domain::Bus*>> TransportCatalogue::GetSortedAllBuses()
 	return all_buses;
 }
 
+const std::unordered_map<std::string_view, domain::Bus*>& TransportCatalogue::GetAllBuses() const
+{
+	return map_of_bus_;
+}
+
+const std::unordered_map<std::string_view, domain::Stop*>& TransportCatalogue::GeAlltStops() const
+{
+	return map_of_stops_;
+}
+
+double TransportCatalogue::GetStopsDistance(const std::pair<domain::Stop*, domain::Stop*> start_stop_point) const
+{
+	auto it = map_distance_between_stops.find(start_stop_point);
+	it = (it == map_distance_between_stops.end()) ? map_distance_between_stops.find({ start_stop_point.second, start_stop_point.first }) : it;
+	if (it != map_distance_between_stops.end()) {
+		return it->second;
+	}
+	else {
+		return geo::ComputeDistance(start_stop_point.first->coordinates, start_stop_point.first->coordinates);
+	}
+
+}
+
 bool TransportCatalogue::BusExists(std::string_view name) const
 {
 	return map_of_bus_.find(name) != map_of_bus_.end();

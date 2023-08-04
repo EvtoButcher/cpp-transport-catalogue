@@ -18,8 +18,11 @@ JesonReader::JesonReader(json::Document document)
 		if (type == "Bus"sv) {
 			ReadBus(request_map);
 		}
-		else {
+		else if(type == "Stop"sv) {
 			ReadStop(request_map);
+		}
+		else {
+			ReadRoute(request_map);
 		}
 	}
 }
@@ -48,6 +51,14 @@ const json::Node& JesonReader::GetRenderProperties() const
 	return empty_node_;
 }
 
+const json::Node& JesonReader::GetRoutingSettings() const
+{
+	if (input_document_.GetRoot().AsMap().count("routing_settings"s)) {
+		return input_document_.GetRoot().AsMap().at("routing_settings"s);
+	}
+	return empty_node_;
+}
+
 void JesonReader::FiilCatalogue(transport_catalogue::TransportCatalogue& catalogue)
 {
 
@@ -55,7 +66,7 @@ void JesonReader::FiilCatalogue(transport_catalogue::TransportCatalogue& catalog
 		catalogue.AddStop(name, geo::Coordinates(stop.first, stop.second));
 	}
 	
-	for (const auto& [name, route] : route_) {
+	for (const auto& [name, route] : bus_route_) {
 		catalogue.AddBus(name, route.first, route.second);
 	}
 	
@@ -63,7 +74,7 @@ void JesonReader::FiilCatalogue(transport_catalogue::TransportCatalogue& catalog
 		catalogue.AddDistanceFromTo(stop_names.first, stop_names.second, distance_to);
 	}
 
-}
+} 
 
 void JesonReader::FillRenderProperties(render::RenderProperties& properties)
 {
@@ -91,6 +102,14 @@ void JesonReader::FillRenderProperties(render::RenderProperties& properties)
 	}
 }
 
+void JesonReader::FillRouteProperties(transport_router::TransportRouter& properties, transport_catalogue::TransportCatalogue& catalogue)
+{
+	const json::Dict route_properties = GetRoutingSettings().AsMap();
+
+	properties.AddRouterSetting({ route_properties.at("bus_wait_time"s).AsDouble(), route_properties.at("bus_velocity"s).AsDouble() });
+	properties.InicializeGraph(catalogue);
+
+}
 
 void JesonReader::ReadBus(const json::Dict& bus)
 {
@@ -98,7 +117,7 @@ void JesonReader::ReadBus(const json::Dict& bus)
 	const auto& stops = bus.at("stops"s).AsArray();
 
 	if (stops.empty()) {
-		route_[name_ini_.back()] = {};
+		bus_route_[name_ini_.back()] = {};
 		return;
 	}
 
@@ -119,7 +138,7 @@ void JesonReader::ReadBus(const json::Dict& bus)
 	}
 
 	bus_ini_.push_back(std::move(route_tmp));
-	route_[name_ini_.back()] = std::make_pair( std::vector<std::string_view>(bus_ini_.back().begin(), bus_ini_.back().end()), is_roundtrip);
+	bus_route_[name_ini_.back()] = std::make_pair( std::vector<std::string_view>(bus_ini_.back().begin(), bus_ini_.back().end()), is_roundtrip);
 
 }
 
@@ -145,6 +164,21 @@ void JesonReader::ReadStop(const json::Dict& stop)
 			distance_between_stops_[std::make_pair(bus_stop_.find(name)->first,
 				bus_stop_.find(other_stop.first)->first)] = other_stop.second.AsInt();
 		});
+}
+
+void JesonReader::ReadRoute(const json::Dict& route)
+{
+	std::string_view from = route.at("from"s).AsString();
+	std::string_view to = route.at("to"s).AsString();
+
+	if (!route_from_stop_to_stop.count(from)) {
+		name_ini_.emplace_back(from);
+	}
+	route_from_stop_to_stop[name_ini_.back()];
+	if (!route_from_stop_to_stop.count(to)) {
+		name_ini_.emplace_back(to);
+	}
+	route_from_stop_to_stop[from] = to;
 }
 
 svg::Color JesonReader::ReadColor(const json::Node& color)

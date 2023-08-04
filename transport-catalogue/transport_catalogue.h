@@ -34,6 +34,9 @@ public:
 	std::optional <domain::StopInfo> GetStopInfo(std::string_view name) const;
 	std::optional<double> GetRoadDistance(std::string_view name) const;
 	std::optional< std::vector<domain::Bus*>> GetSortedAllBuses() const;
+	const std::unordered_map<std::string_view, domain::Bus*>& GetAllBuses() const;
+	const std::unordered_map<std::string_view, domain::Stop*>& GeAlltStops() const;
+	double GetStopsDistance(const std::pair<domain::Stop*, domain::Stop*>) const;
 
 	bool BusExists(std::string_view name) const;
 	bool StopExists(std::string_view name) const;
