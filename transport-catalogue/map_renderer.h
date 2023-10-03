@@ -8,7 +8,7 @@
 #include <iostream>
 #include <map>
 #include <optional>
-#include <vector>
+#include <vector> 
 
 namespace tc_project{
 
@@ -103,7 +103,7 @@ public:
 private:
     double padding_ = 0.0;
     double min_lon_ = 0.0;
-    double max_lat_ = 0.0;
+    double max_lat_ = 0.0; 
     double zoom_coeff_ = 0.0;
 };
     
@@ -117,6 +117,7 @@ public:
     void Render(std::ostream& out, std::vector<domain::Bus*> route);
 
     RenderProperties& GetRenderProperties();
+    const RenderProperties& GetRenderProperties() const;
 
 private:
     void AddRouteLine(std::map<std::string_view, std::vector<domain::Stop*>>& map_geo_coords);

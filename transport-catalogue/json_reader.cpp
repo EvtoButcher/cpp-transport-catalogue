@@ -9,20 +9,22 @@ namespace tc_project {
 JesonReader::JesonReader(json::Document document)
 	:input_document_(document)
 {
-	const json::Array& requests = GetBaseRequests().AsArray();
+	if (GetBaseRequests() != empty_node_) {
+		const json::Array& requests = GetBaseRequests().AsArray();
 
-	for (const auto& request_node : requests) {
-		const json::Dict& request_map = request_node.AsMap();
-		const std::string_view type = request_map.at("type"s).AsString();
+		for (const auto& request_node : requests) {
+			const json::Dict& request_map = request_node.AsMap();
+			const std::string_view type = request_map.at("type"s).AsString();
 
-		if (type == "Bus"sv) {
-			ReadBus(request_map);
-		}
-		else if(type == "Stop"sv) {
-			ReadStop(request_map);
-		}
-		else {
-			ReadRoute(request_map);
+			if (type == "Bus"sv) {
+				ReadBus(request_map);
+			}
+			else if (type == "Stop"sv) {
+				ReadStop(request_map);
+			}
+			else {
+				ReadRoute(request_map);
+			}
 		}
 	}
 }
@@ -55,6 +57,14 @@ const json::Node& JesonReader::GetRoutingSettings() const
 {
 	if (input_document_.GetRoot().AsMap().count("routing_settings"s)) {
 		return input_document_.GetRoot().AsMap().at("routing_settings"s);
+	}
+	return empty_node_;
+}
+
+const json::Node& JesonReader::GetSerializationSettings() const
+{
+	if (input_document_.GetRoot().AsMap().count("serialization_settings"s)) {
+		return input_document_.GetRoot().AsMap().at("serialization_settings"s);
 	}
 	return empty_node_;
 }

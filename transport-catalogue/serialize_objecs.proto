@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package proto;
+
+import "transport_catalogue.proto";
+import "map_render.proto";
+
+message ObjectsToSerialaze{
+	TransportCatalogue tc = 1;
+	RenderProperties map = 2;
+}

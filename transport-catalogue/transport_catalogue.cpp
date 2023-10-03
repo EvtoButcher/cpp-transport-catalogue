@@ -1,7 +1,6 @@
 ﻿#include <algorithm>
 
 #include "transport_catalogue.h"
-#include "log_duration.h"
 
 namespace tc_project {
 
@@ -124,8 +123,8 @@ std::optional<std::vector<domain::Bus*>> TransportCatalogue::GetSortedAllBuses()
 		});
 
 	std::sort(all_buses.begin(), all_buses.end(),
-		[](const auto& lhs, const auto& rhs){
-			return lhs->name < rhs->name;
+		[](auto& lhs, auto& rhs){
+			return static_cast<std::string_view>(lhs->name) < static_cast<std::string_view>(rhs->name);
 		});
 
 	return all_buses;
@@ -136,7 +135,7 @@ const std::unordered_map<std::string_view, domain::Bus*>& TransportCatalogue::Ge
 	return map_of_bus_;
 }
 
-const std::unordered_map<std::string_view, domain::Stop*>& TransportCatalogue::GeAlltStops() const
+const std::unordered_map<std::string_view, domain::Stop*>& TransportCatalogue::GetAlltStops() const
 {
 	return map_of_stops_;
 }
@@ -152,6 +151,19 @@ double TransportCatalogue::GetStopsDistance(const std::pair<domain::Stop*, domai
 		return geo::ComputeDistance(start_stop_point.first->coordinates, start_stop_point.first->coordinates);
 	}
 
+}
+
+const std::unordered_map<std::string_view, unsigned int> TransportCatalogue::GetStopsNearby(const domain::Stop* stop) const
+{
+	std::unordered_map<std::string_view, unsigned int> stops_nearby;
+
+	for (const auto [stops, distance] : map_distance_between_stops) {
+		if (stops.first == stop) {
+			stops_nearby.emplace(stops.second->name, distance);
+		}
+	}
+
+	return stops_nearby;
 }
 
 bool TransportCatalogue::BusExists(std::string_view name) const

@@ -7,6 +7,7 @@ namespace transport_router {
 
 using namespace std::literals;
 
+
 void TransportRouter::AddRouterSetting(RouterSettings settings) {
 	if (!CheckArgument(settings.bus_wait_time_) && !CheckArgument(settings.bus_velocity_)) {
 		throw std::invalid_argument("Incorrect wait time or velocity"s);
@@ -36,7 +37,6 @@ void TransportRouter::BuildGraph(graph::DirectedWeightedGraph<RouteWeight>& grap
 void TransportRouter::InicializeGraph(const transport_catalogue::TransportCatalogue& catalogue) {
 	graph::DirectedWeightedGraph<RouteWeight> graph(CountStops(catalogue));
 	for (const auto& [bus_name, route] : catalogue.GetAllBuses()) {
-		std::vector<domain::Stop*> stops = route->stop_on_route;
 		BuildGraph(graph, catalogue, route->stop_on_route, bus_name);
 		if (!route->is_roundtrip) {
 			std::vector<domain::Stop*> rstops{ route->stop_on_route.rbegin(), route->stop_on_route.rend() };
@@ -50,7 +50,7 @@ void TransportRouter::InicializeGraph(const transport_catalogue::TransportCatalo
 
 size_t TransportRouter::CountStops(const transport_catalogue::TransportCatalogue& catalogue_) {
 	size_t stops_counter = 0;
-	const auto& stops = catalogue_.GeAlltStops();
+	const auto& stops = catalogue_.GetAlltStops();
 	stopname_id_.reserve(stops.size());
 	id_stopname_.reserve(stops.size());
 	for (const auto& stop : stops) {

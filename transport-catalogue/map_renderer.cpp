@@ -60,6 +60,11 @@ RenderProperties& MapRenderer::GetRenderProperties()
 	return properties_;
 }
 
+const RenderProperties& MapRenderer::GetRenderProperties() const
+{
+	return properties_;
+}
+
 void MapRenderer::AddRouteLine(std::map<std::string_view, std::vector<domain::Stop*>>& map_geo_coords)
 {
 	size_t color_num = 0;

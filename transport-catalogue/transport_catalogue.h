@@ -35,8 +35,9 @@ public:
 	std::optional<double> GetRoadDistance(std::string_view name) const;
 	std::optional< std::vector<domain::Bus*>> GetSortedAllBuses() const;
 	const std::unordered_map<std::string_view, domain::Bus*>& GetAllBuses() const;
-	const std::unordered_map<std::string_view, domain::Stop*>& GeAlltStops() const;
+	const std::unordered_map<std::string_view, domain::Stop*>& GetAlltStops() const;
 	double GetStopsDistance(const std::pair<domain::Stop*, domain::Stop*>) const;
+	const std::unordered_map<std::string_view, unsigned int> GetStopsNearby(const domain::Stop* stop) const;
 
 	bool BusExists(std::string_view name) const;
 	bool StopExists(std::string_view name) const;
@@ -56,4 +57,4 @@ private:
 
 }//namespace transport_catalogue
 
-}//namespace tc_project
+}//namespace tc_project 

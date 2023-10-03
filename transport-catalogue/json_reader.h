@@ -18,6 +18,7 @@ struct PairStringViewHasher {
 
 }//namespace detail
 
+
 class JesonReader 
 {
 public:
@@ -27,6 +28,7 @@ public:
 	const json::Node& GetRequestsToCatalogue() const;
 	const json::Node& GetRenderProperties() const;
 	const json::Node& GetRoutingSettings() const;
+	const json::Node& GetSerializationSettings() const;
 	
 	void FiilCatalogue(transport_catalogue::TransportCatalogue& catalogue);
 	void FillRenderProperties(render::RenderProperties& properties);

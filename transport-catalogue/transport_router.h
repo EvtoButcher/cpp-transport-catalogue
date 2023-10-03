@@ -19,6 +19,10 @@ struct RouteWeight {
 struct RouterSettings {
 	RouterSettings() = default;
 
+	RouterSettings(double bus_wait_time, double bus_velocity)
+		: bus_wait_time_(bus_wait_time)
+		, bus_velocity_(bus_velocity) {};
+
 	double bus_wait_time_ = 0.0;
 	double bus_velocity_ = 0.0;
 };
